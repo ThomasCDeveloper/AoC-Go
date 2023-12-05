@@ -28,14 +28,48 @@ func processSeed(seed int, ma ConvertMap) int {
 	return seed
 }
 
-func processRange(rang []int, ma ConvertMap) []int {
+func applyWindow(ran []int, start int, end int) []int {
 	output := []int{}
-	/*
-		for _, ran := range ma.ranges {
+
+	for i := 0; i < len(ran); i = i + 2 {
+		s := ran[i]
+		e := ran[i+1]
+
+		// CHANGE HERE TWEAK
+		if s >= end || e < start || (s >= start && e < end) {
+			output = append(output, s, e)
+		}
+		if s < start && e >= start {
+			output = append(output, s, start-1, start, e)
+		}
+		if s < end && e >= end {
+			output = append(output, s, end-1, end, e)
+		}
+	}
+
+	return output
+}
+
+func processRange(ran []int, ma ConvertMap) []int {
+
+	sections := ran
+	for i := 0; i < len(ran); i = i + 2 {
+		for _, mapRange := range ma.ranges {
+			mapRangeStart := mapRange.from
+			mapRangeEnd := mapRange.from + mapRange.n
+
+			sections = applyWindow(sections, mapRangeStart, mapRangeEnd)
 
 		}
-	*/
-	return output
+	}
+
+	results := []int{}
+
+	for _, val := range sections {
+		results = append(results, processSeed(val, ma))
+	}
+
+	return results
 }
 
 func SolvePart1(data []string) int {
@@ -52,7 +86,7 @@ func SolvePart1(data []string) int {
 			continue
 		}
 
-		if strings.Index("abcdefghijklmnopqrstuvwxyz", string(line[0])) != -1 {
+		if strings.Contains("abcdefghijklmnopqrstuvwxyz", string(line[0])) {
 			if len(newMap.ranges) != 0 {
 				maps = append(maps, newMap)
 				newMap = ConvertMap{}
@@ -100,8 +134,6 @@ func SolvePart2(data []string) int {
 		seeds = append(seeds, from+n)
 	}
 
-	fmt.Println(seeds)
-
 	maps := []ConvertMap{}
 	newMap := ConvertMap{}
 	for _, line := range data[2:] {
@@ -109,7 +141,7 @@ func SolvePart2(data []string) int {
 			continue
 		}
 
-		if strings.Index("abcdefghijklmnopqrstuvwxyz", string(line[0])) != -1 {
+		if strings.Contains("abcdefghijklmnopqrstuvwxyz", string(line[0])) {
 			if len(newMap.ranges) != 0 {
 				maps = append(maps, newMap)
 				newMap = ConvertMap{}
@@ -125,33 +157,36 @@ func SolvePart2(data []string) int {
 	}
 	maps = append(maps, newMap)
 
-	/*
-		results := []int{}
+	for i := 0; i < len(maps); i++ {
+		fmt.Println(seeds)
+		seeds = processRange(seeds, maps[i])
+	}
 
-		for _, seed := range seeds {
-			for _, ma := range maps {
-				seed = processSeed(seed, ma)
-			}
-			results = append(results, seed)
+	results := []int{}
+
+	for _, seed := range seeds {
+		for _, ma := range maps {
+			seed = processSeed(seed, ma)
 		}
+		results = append(results, seed)
+	}
 
-		min := results[0]
-		for _, res := range results {
-			if res < min {
-				min = res
-			}
+	min := results[0]
+	for _, res := range results {
+		if res < min {
+			min = res
 		}
-	*/
+	}
 
-	return 0
+	return min
 }
 
 func main() {
-	data := GetInput("input.txt")
+	data := GetInput("test.txt")
 
 	// PART 1
-	fmt.Println("Part 1:")
-	fmt.Println(SolvePart1(data))
+	//fmt.Println("Part 1:")
+	//fmt.Println(SolvePart1(data))
 
 	// PART 2
 	fmt.Println("Part 2:")
