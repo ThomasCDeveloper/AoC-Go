@@ -28,7 +28,7 @@ func SolvePart1(data []string) int {
 	durations := []int{}
 	records := []int{}
 
-	for i, _ := range durationsS {
+	for i := range durationsS {
 		val, _ := strconv.Atoi(durationsS[i])
 		durations = append(durations, val)
 		val, _ = strconv.Atoi(recordsS[i])
@@ -36,7 +36,7 @@ func SolvePart1(data []string) int {
 	}
 
 	sum := 1
-	for i, _ := range durationsS {
+	for i := range durationsS {
 		T := durations[i]
 		r := records[i]
 
@@ -54,7 +54,7 @@ func SolvePart2(data []string) int {
 }
 
 func main() {
-	env := "prod"
+	env := "test"
 
 	data := []string{"60 80 86 76", "601 1163 1559 1300"}
 	if env == "test" {
@@ -68,4 +68,12 @@ func main() {
 	// PART 2
 	fmt.Println("Part 2:")
 	fmt.Println(SolvePart2(data))
+
+	data = GetInput("test.txt")
+
+	// to make cleaner
+	test := data[0]
+	for strings.Contains(test, "  ") {
+		test = strings.Replace(test, "  ", " ", -1)
+	}
 }
