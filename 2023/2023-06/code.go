@@ -54,12 +54,7 @@ func SolvePart2(data []string) int {
 }
 
 func main() {
-	env := "test"
-
-	data := []string{"60 80 86 76", "601 1163 1559 1300"}
-	if env == "test" {
-		data = []string{"7 15 30", "9 40 200"}
-	}
+	data := GetInput("input.txt")
 
 	// PART 1
 	fmt.Println("Part 1:")
@@ -68,12 +63,4 @@ func main() {
 	// PART 2
 	fmt.Println("Part 2:")
 	fmt.Println(SolvePart2(data))
-
-	data = GetInput("test.txt")
-
-	// to make cleaner
-	test := data[0]
-	for strings.Contains(test, "  ") {
-		test = strings.Replace(test, "  ", " ", -1)
-	}
 }
