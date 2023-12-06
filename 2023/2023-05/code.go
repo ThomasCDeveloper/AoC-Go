@@ -28,50 +28,6 @@ func processSeed(seed int, ma ConvertMap) int {
 	return seed
 }
 
-func applyWindow(ran []int, start int, end int) []int {
-	output := []int{}
-
-	for i := 0; i < len(ran); i = i + 2 {
-		s := ran[i]
-		e := ran[i+1]
-
-		// CHANGE HERE TWEAK
-		if s >= end || e < start || (s >= start && e < end) {
-			output = append(output, s, e)
-		}
-		if s < start && e >= start {
-			output = append(output, s, start-1, start, e)
-		}
-		if s < end && e >= end {
-			output = append(output, s, end-1, end, e)
-		}
-	}
-
-	return output
-}
-
-func processRange(ran []int, ma ConvertMap) []int {
-
-	sections := ran
-	for i := 0; i < len(ran); i = i + 2 {
-		for _, mapRange := range ma.ranges {
-			mapRangeStart := mapRange.from
-			mapRangeEnd := mapRange.from + mapRange.n
-
-			sections = applyWindow(sections, mapRangeStart, mapRangeEnd)
-
-		}
-	}
-
-	results := []int{}
-
-	for _, val := range sections {
-		results = append(results, processSeed(val, ma))
-	}
-
-	return results
-}
-
 func SolvePart1(data []string) int {
 	seeds := []int{}
 	for _, val := range strings.Split(data[0], " ")[1:len(strings.Split(data[0], " "))] {
@@ -123,16 +79,6 @@ func SolvePart1(data []string) int {
 }
 
 func SolvePart2(data []string) int {
-	seeds := []int{}
-	splitedLine := strings.Split(data[0], " ")
-	for i := 0; i < len(splitedLine)-1; i++ {
-		from, _ := strconv.Atoi(splitedLine[i+1])
-		n, _ := strconv.Atoi(splitedLine[i+2])
-		i++
-
-		seeds = append(seeds, from)
-		seeds = append(seeds, from+n)
-	}
 
 	maps := []ConvertMap{}
 	newMap := ConvertMap{}
@@ -157,36 +103,34 @@ func SolvePart2(data []string) int {
 	}
 	maps = append(maps, newMap)
 
-	for i := 0; i < len(maps); i++ {
-		fmt.Println(seeds)
-		seeds = processRange(seeds, maps[i])
-	}
+	result := 10000000000000000
 
-	results := []int{}
+	splitedLine := strings.Split(data[0], " ")
+	for i := 0; i < len(splitedLine)-1; i++ {
+		from, _ := strconv.Atoi(splitedLine[i+1])
+		n, _ := strconv.Atoi(splitedLine[i+2])
+		i++
 
-	for _, seed := range seeds {
-		for _, ma := range maps {
-			seed = processSeed(seed, ma)
-		}
-		results = append(results, seed)
-	}
-
-	min := results[0]
-	for _, res := range results {
-		if res < min {
-			min = res
+		for j := 0; j <= n; j++ {
+			seed := from + j
+			for _, ma := range maps {
+				seed = processSeed(seed, ma)
+			}
+			if seed < result {
+				result = seed
+			}
 		}
 	}
 
-	return min
+	return result
 }
 
 func main() {
 	data := GetInput("test.txt")
 
 	// PART 1
-	//fmt.Println("Part 1:")
-	//fmt.Println(SolvePart1(data))
+	fmt.Println("Part 1:")
+	fmt.Println(SolvePart1(data))
 
 	// PART 2
 	fmt.Println("Part 2:")
