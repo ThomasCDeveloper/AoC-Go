@@ -4,19 +4,89 @@ package main
 
 import (
 	"fmt"
-	"slices"
 	"sort"
 	"strconv"
 	"strings"
 )
 
 type Bet struct {
-	cards []int
-	bet   int
-	i     int
-	wins  int
-	rep   []int
-	J     int
+	cards    []int
+	bet      int
+	wins     int
+	handType int
+	raw      string
+}
+
+func Compare(bet1, bet2 Bet) bool {
+	if bet1.handType > bet2.handType {
+		return true
+	}
+	if bet2.handType > bet1.handType {
+		return false
+	}
+
+	for i := range bet1.cards {
+		if bet1.cards[i] > bet2.cards[i] {
+			return true
+		}
+		if bet2.cards[i] > bet1.cards[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func GetBet(line string, part2 bool) Bet {
+	bet := Bet{}
+
+	cards := make([]int, 5)
+	values := "23456789TJQKA"
+	if part2 {
+		values = "J23456789TQKA"
+	}
+	rawDeck := strings.Split(line, " ")[0]
+	for i := 0; i < 5; i++ {
+		cards[i] = strings.Index(values, string(rawDeck[i]))
+	}
+
+	repartition := GetCardRepartition(cards)
+
+	Js := 0
+	if part2 {
+		Js = repartition[0]
+		repartition = repartition[1:]
+	}
+
+	sort.Slice(repartition, func(i, j int) bool {
+		return repartition[i] > repartition[j]
+	})
+	if part2 {
+		repartition[0] += Js
+	}
+
+	handType := 0
+	if repartition[0] == 5 {
+		handType = 6
+	} else if repartition[0] == 4 {
+		handType = 5
+	} else if repartition[0] == 3 && repartition[1] == 2 {
+		handType = 4
+	} else if repartition[0] == 3 {
+		handType = 3
+	} else if repartition[0] == 2 && repartition[1] == 2 {
+		handType = 2
+	} else if repartition[0] == 2 {
+		handType = 1
+	}
+
+	bet.cards = cards
+	bet.bet, _ = strconv.Atoi(strings.Split(line, " ")[1])
+	bet.handType = handType
+	bet.wins = 0
+	bet.raw = rawDeck
+
+	return bet
 }
 
 func GetCardRepartition(cards []int) []int {
@@ -27,106 +97,66 @@ func GetCardRepartition(cards []int) []int {
 	return output
 }
 
-func Compare(bet1, bet2 Bet) bool {
-	cards1 := bet1.cards
-	cards2 := bet2.cards
-	val1 := slices.Max(bet1.rep) + bet1.J
-	val2 := slices.Max(bet2.rep) + bet2.J
-
-	if val1 > val2 {
-		return true
-	}
-	if val2 > val1 {
-		return false
-	}
-
-	// check for 3-2 configurations
-	if val1 == 3 && val2 == 3 {
-		if slices.Contains(bet1.rep, 2) && !slices.Contains(bet2.rep, 2) {
-			return true
-		}
-		if !slices.Contains(bet1.rep, 2) && slices.Contains(bet2.rep, 2) {
-			return false
-		}
-	}
-	// add condition HERE
-	// si 1 double + 1 joker ça bat 1 double
-	if bet1.J == 0 && bet2.J == 0 {
-		if val1 == 2 && val2 == 2 {
-			// change that to count 2s in reps
-			count1, count2 := 0, 0
-			for i := 0; i < len(bet1.rep); i++ {
-				if bet1.rep[i] == 2 {
-					count1++
-				}
-				if bet2.rep[i] == 2 {
-					count2++
-				}
-			}
-			if count1 > count2 {
-				return true
-			}
-			if count2 > count1 {
-				return false
-			}
-		}
-	}
-
-	for i := 0; i < 5; i++ {
-		if cards1[i] > cards2[i] {
-			return true
-		}
-		if cards2[i] > cards1[i] {
-			return false
-		}
-	}
-	return true
-}
-
 func SolvePart1(data []string) int {
-	bets := []Bet{}
-	for i, line := range data {
-		cards := []int{}
-		deck := strings.Split(line, " ")[0]
-		for i := 0; i < 5; i++ {
-			cards = append(cards, strings.Index("23456789TJQKA", string(deck[i])))
-		}
-		bet, _ := strconv.Atoi(strings.Split(line, " ")[1])
-		currentBet := Bet{cards, bet, i, 0, GetCardRepartition(cards), 0}
-
-		bets = append(bets, currentBet)
+	tournament := []Bet{}
+	for _, line := range data {
+		tournament = append(tournament, GetBet(line, false))
 	}
 
-	for i := 0; i < len(data)-1; i++ {
-		for j := i + 1; j < len(data); j++ {
-			if Compare(bets[i], bets[j]) {
-				bets[i].wins++
+	for i := 0; i < len(tournament)-1; i++ {
+		for j := i + 1; j < len(tournament); j++ {
+			if Compare(tournament[i], tournament[j]) {
+				tournament[i].wins++
 			} else {
-				bets[j].wins++
+				tournament[j].wins++
 			}
 		}
 	}
 
-	// sort bets according to wins
-	sort.Slice(bets, func(i, j int) bool {
-		return bets[i].wins < bets[j].wins
+	sort.Slice(tournament, func(i, j int) bool {
+		return tournament[i].wins < tournament[j].wins
 	})
 
 	sum := 0
 
-	for i, bet := range bets {
-		sum += (i + 1) * bet.bet
+	for i := range tournament {
+		sum += tournament[i].bet * (i + 1)
 	}
 
 	return sum
 }
 
 func SolvePart2(data []string) int {
-	return 0
+	tournament := []Bet{}
+	for _, line := range data {
+		tournament = append(tournament, GetBet(line, true))
+	}
+
+	for i := 0; i < len(tournament)-1; i++ {
+		for j := i + 1; j < len(tournament); j++ {
+			if Compare(tournament[i], tournament[j]) {
+				tournament[i].wins++
+			} else {
+				tournament[j].wins++
+			}
+		}
+	}
+
+	sort.Slice(tournament, func(i, j int) bool {
+		return tournament[i].wins < tournament[j].wins
+	})
+
+	sum := 0
+
+	for i := range tournament {
+		sum += tournament[i].bet * (i + 1)
+	}
+
+	return sum
 }
 
 func main() {
-	data := GetInput("test.txt")
+	data := GetInput("input.txt")
 
 	// PART 1
 	fmt.Println("Part 1:")
