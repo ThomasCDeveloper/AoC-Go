@@ -18,10 +18,8 @@ func main() {
 	data := GetInput("test.txt")
 
 	// PART 1
-	fmt.Println("Part 1:")
-	fmt.Println(SolvePart1(data))
+	fmt.Println("Part 1:", SolvePart1(data))
 
 	// PART 2
-	fmt.Println("Part 2:")
-	fmt.Println(SolvePart2(data))
+	fmt.Println("Part 2:", SolvePart2(data))
 }

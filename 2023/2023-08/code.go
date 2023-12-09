@@ -104,7 +104,7 @@ func main() {
 
 	// PART 1
 	fmt.Println("Part 1:")
-	//fmt.Println(SolvePart1(data))
+	fmt.Println(SolvePart1(data))
 
 	// PART 2
 	fmt.Println("Part 2:")
