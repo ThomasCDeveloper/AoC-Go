@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,71 +18,47 @@ type sequence struct {
 var cache = make(map[sequence]int)
 
 func GetCombinaisons(cmd []uint8, springs string) int {
-	if len(cmd) == 0 && len(springs) == 0 {
-		return 1
-	}
-	if len(springs) == 0 {
-		return 0
-	}
-
-	value, test := cache[sequence{springs, string(cmd)}]
-	if test { // si la sequence est déjà dans le cache
-		return value
+	if springs == "" {
+		if len(cmd) == 0 { // fin du bloc
+			return 1
+		} else {
+			return 0
+		}
 	}
 
-	if springs[0] == '.' {
-		val := GetCombinaisons(cmd, springs[1:])
-		cache[sequence{springs, string(cmd)}] = val
-		return val
+	if len(cmd) == 0 {
+		if strings.Contains(springs, "#") { // plus de commande mais au moins un spring restant
+			return 0
+		} else {
+			return 1
+		}
+	}
+
+	key := sequence{springs, string(cmd)}
+	cachedValue, isCached := cache[key]
+	if isCached {
+		return cachedValue
 	}
 
 	sum := 0
-	for _, n := range cmd {
-		sum += int(n)
-	}
-	if len(springs) < sum+len(cmd)-1 {
-		cache[sequence{springs, string(cmd)}] = 0
-		return 0
-	}
 
-	if springs[0] == '?' {
-		res := GetCombinaisons(cmd, springs[1:]) + GetCombinaisons(cmd, "#"+springs[1:])
-		cache[sequence{springs, string(cmd)}] = res
-		return res
+	firstSpring := string(springs[0])
+
+	if strings.Contains(".?", firstSpring) {
+		// 1er spring traité comme .
+		sum += GetCombinaisons(cmd, springs[1:])
 	}
 
-	if springs[0] == '#' {
-		if len(cmd) == 0 {
-			cache[sequence{springs, string(cmd)}] = 0
-			return 0
+	if strings.Contains("#?", firstSpring) {
+		// 1er spring traité comme #
+		firstNum := int(cmd[0])
+		if firstNum <= len(springs) && !strings.Contains(springs[:firstNum], ".") && (firstNum == len(springs) || string(springs[firstNum]) != "#") {
+			min := int(math.Min(float64(firstNum+1), float64(len(springs))))
+			sum += GetCombinaisons(cmd[1:], springs[min:])
 		}
-
-		n := cmd[0]
-		indexDot := strings.Index(springs, ".")
-		if indexDot == -1 {
-			indexDot = len(springs)
-		}
-		if indexDot < int(n) {
-			cache[sequence{springs, string(cmd)}] = 0
-			return 0
-		}
-
-		remaining := springs[n:]
-		if len(remaining) == 0 {
-			res := GetCombinaisons(cmd[1:], remaining)
-			cache[sequence{springs, string(cmd)}] = res
-			return res
-		}
-
-		if remaining[0] == '#' {
-			cache[sequence{springs, string(cmd)}] = 0
-			return 0
-		}
-
-		res := GetCombinaisons(cmd[1:], remaining[1:])
-		cache[sequence{springs, string(cmd)}] = res
-		return res
 	}
+
+	cache[key] = sum
 
 	return sum
 }
@@ -143,7 +120,7 @@ func SolvePart2(data []string) int {
 }
 
 func main() {
-	data := GetInput("test.txt")
+	data := GetInput("input.txt")
 
 	// PART 1
 	fmt.Println("Part 1:", SolvePart1(data))
