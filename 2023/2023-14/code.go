@@ -7,6 +7,30 @@ import (
 	"strings"
 )
 
+func isSame(t1 [][]int, t2 [][]int) bool {
+	for y := range t1 {
+		for x := range t1[y] {
+			if t1[y][x] != t2[y][x] {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+func copy(t [][]int) [][]int {
+	tile := [][]int{}
+
+	for y := range t {
+		line := []int{}
+		line = append(line, t[y]...)
+		tile = append(tile, line)
+	}
+
+	return tile
+}
+
 func load(tiles [][]int) int {
 	height := len(tiles)
 	sum := 0
@@ -138,8 +162,24 @@ func SolvePart2(data []string) int {
 		tiles = append(tiles, tileLine)
 	}
 
-	for i := 0; i < 1000000000%42+30*42; i++ { // I noticed a pattern of 42
-		tiles = MakeSpin(tiles)
+	grids := [][][]int{tiles}
+	nbSpins := 1000000000
+
+	loop := 0
+	for i := 0; i < nbSpins; i++ {
+		tiles = MakeSpin(copy(tiles))
+
+		if loop == 0 {
+			for index, grid := range grids {
+				if isSame(grid, tiles) {
+					loop = i - index + 1
+					amount := (nbSpins - i - 1) / loop
+
+					i += amount * loop
+				}
+			}
+		}
+		grids = append(grids, tiles)
 	}
 
 	return load(tiles)
