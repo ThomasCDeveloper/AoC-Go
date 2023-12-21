@@ -106,7 +106,7 @@ func getMods(data []string) {
 			mods[receiver].memories[mod.name] = false
 		}
 
-		if slices.Contains(mod.outputs, "nc") {
+		if slices.Contains(mod.outputs, "nc") { // last before "rx"
 			loopsSize[mod.name] = 0
 		}
 	}
