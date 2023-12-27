@@ -187,7 +187,6 @@ func SolvePart2(data []string) int {
 		}
 	}
 
-	fmt.Println(len(graph))
 	seen = []co{}
 
 	return dfs(start)
