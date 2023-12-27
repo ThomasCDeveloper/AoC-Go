@@ -115,8 +115,7 @@ func dfs(rc co) int {
 		}
 	}
 
-	i := slices.Index(seen, rc)
-	seen = append(seen[:i], seen[i+1:]...)
+	seen = seen[:len(seen)-1]
 
 	return m
 }
@@ -195,7 +194,7 @@ func SolvePart2(data []string) int {
 }
 
 func main() {
-	data := GetInput("test.txt")
+	data := GetInput("input.txt")
 
 	// PART 1
 	//fmt.Println("Part 1:", SolvePart1(data))
